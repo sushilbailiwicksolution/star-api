@@ -4,10 +4,9 @@ import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { Pagination } from "nestjs-typeorm-paginate";
 import { StateDto } from "../../../dto/state.interface";
 import { TransformInterceptor } from "../../../interceptors/transform.interceptor";
-import { NewLayerEntity } from "../entity/newlayer.entity";
-import { NewLayerCreateDto } from "../dto/newlayer.dto";
 import { ResTransformInterceptor } from "../../../interceptors/response.interceptor";
 import { NewLayerService } from "../service/newlayer.service";
+import { NLayerDto } from "../dto/newlayer.dto";
 
 
 /**
@@ -34,78 +33,23 @@ export class NewLayerController {
      * @param data 
      * @returns 
      */
-    @Post()
-    @HttpCode(HttpStatus.CREATED)
-    @ApiOperation({ summary: 'Create new layer ' })
-    @ApiResponse({ status: 403, description: 'Forbidden.' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'This layer  has been successfully created.'})
-    public async create(@Body() data: NewLayerCreateDto): Promise<NewLayerCreateDto> {
-        return this.newlayer.create(data);
-    }
+   
+  @Post()
+  @ApiOperation({ summary: 'Create a new layer' })
+  @ApiResponse({
+    status: 201,
+    description: 'The layer has been successfully created.',
+    type: NLayerDto,
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  async create(@Body() layerDto: NLayerDto) {
+    return this.newlayer.createLayer(layerDto);
+  }
 
-    /**
-     * Find all the NewLayer 
-     * @returns 
-     */
-    @Get()
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Fin all NewLayer' })
-    @ApiResponse({ status: 403, description: 'Forbidden.' })
-    public async findAll() {
-        return this.newlayer.findAll();
-    }
-
-    /**
-     * Find a NewLayer by id provided
-     * @param id 
-     * @returns 
-     */
-    @Get(':id')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Find NewLayer by id' })
-    @ApiResponse({ status: 403, description: 'Forbidden.' })
-    public async findOne(@Param('id') id) {
-        return this.newlayer.findById(id);
-    }
-
-    /**
-     * Updates a NewLayer with new data based on id
-     * @param id 
-     * @param data 
-     * @returns 
-     */
-
-    @Put(':id')
-    @HttpCode(HttpStatus.CREATED)
-    @ApiOperation({ summary: 'Updated NewLayer' })
-    @ApiResponse({ status: 403, description: 'Forbidden.' })
-    @ApiResponse({ status: HttpStatus.CREATED, description: 'The NewLayer has been successfully updated.'})
-    public async update(@Param('id') id: number, @Body() data: NewLayerCreateDto) {
-        return this.newlayer.update(id, data);
-    }
-
-    /**
-     * Delete a NewLayer
-     * @param id 
-     * @returns 
-     */
-    @Delete(':id')
-    @HttpCode(HttpStatus.OK)
-    @ApiOperation({ summary: 'Delete NewLayer by id' })
-    @ApiResponse({ status: 403, description: 'Forbidden.' })
-    public async remove(@Param('id') id: number): Promise<NewLayerCreateDto> {
-        return this.newlayer.remove(id);
-    }
-
-    /**
-     * Find NewLayer list by pagination
-     * @param state 
-     * @returns 
-     */
-    @Post('paginate')
-    @ApiOperation({ summary: 'Find NewLayer list by pagination' })
-    @ApiResponse({ status: 403, description: 'Forbidden.' })
-    async paginate(@Body() state: StateDto): Promise<Pagination<NewLayerEntity>> {
-        return this.newlayer.paginate(state);
-    }
+  @Get()
+  @ApiOperation({ summary: 'Get all layers' })
+  @ApiResponse({ status: 200, description: 'Successful retrieval of layers', type: NLayerDto, isArray: true })
+  async getLayers(): Promise<NLayerDto[]> {
+    return this.newlayer.getLayers();
+  }
 }

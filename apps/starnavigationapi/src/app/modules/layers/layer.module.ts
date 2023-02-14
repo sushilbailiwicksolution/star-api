@@ -27,7 +27,8 @@ import { GeofenceNotificationEntity } from './entity/geofence.notification.entit
 import { GroupEntity } from './entity/group.entity';
 import { LandmarkEntity } from './entity/landmark.entity';
 import { LayerEntity } from './entity/layer.entity';
-import { NewLayerEntity } from './entity/newlayer.entity';
+import { LayerData, NLayer, ProductData } from './entity/newlayer.entity';
+import { NewUserEntity } from './entity/newUser.entity';
 import { NotificationEmailEntity } from './entity/notification.email.entity';
 import { NotificationEntity } from './entity/notification.entity';
 import { NotificationTemplateEntity } from './entity/notification.template.entity';
@@ -42,6 +43,7 @@ import { GroupService } from './service/group.service';
 import { LandmarkService } from './service/landmark.service';
 import { LayerService } from './service/layer.service';
 import { NewLayerService } from './service/newlayer.service';
+import { NewUserService } from './service/newUser.service';
 import { NotificationService } from './service/notification.service';
 import { NotificationTemplateService } from './service/notification.template.service';
 import { UserService } from './service/user.service';
@@ -53,7 +55,7 @@ import { UserService } from './service/user.service';
 @Module({
     imports: [
         TypeOrmModule.forFeature([
-            // NewLayerEntity,
+            NewUserEntity,NLayer,LayerData,ProductData,
             LayerEntity, LandmarkEntity, NotificationEmailEntity, NotificationEntity, 
             NotificationTemplateEntity, GeofenceEntity, AplEntity, AplItemEntity, AssetEntity, CustomerEntity,
             EventDetailsEntity, EventParamDetailsEntity, FlighLocationEntity, FlighPlanEntity, UserEntity, GroupEntity,
@@ -61,13 +63,13 @@ import { UserService } from './service/user.service';
         ])
     ],
     providers: [
-        // NewLayerService,
+      NewLayerService,NewUserService,
         LayerService, QueryBuilder, LandmarkService, NotificationService, NotificationTemplateService,
         AssetService, UserService, GroupService, CustomerService, AplService, EventDetailService, GeofenceService
     ],
     exports: [TypeOrmModule],
     controllers: [
-        // NewLayerController,
+       NewLayerController,
         LayerController, LandmarkController, NotificationController, NotificationTemplateController, 
         AssetController, UserController, GroupController, CustomerController, AplController, EventDetailController,
         GeofenceController, AssetController

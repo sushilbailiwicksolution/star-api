@@ -1,7 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "rootDir": "http://localhost:3333/docs",
+    "rootDir": ".",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
@@ -13,7 +13,7 @@
     "lib": ["es2017", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "baseUrl": "http://localhost:3333/docs",
+    "baseUrl": ".",
     "paths": {}
   },
   "exclude": ["node_modules", "tmp"]

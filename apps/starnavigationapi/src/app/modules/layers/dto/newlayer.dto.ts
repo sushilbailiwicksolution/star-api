@@ -1,8 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
-import { IsString } from 'class-validator';
-import { array } from 'joi';
-
 
 /**
  * This is NewLayerCreate class
@@ -11,36 +7,48 @@ import { array } from 'joi';
  * 
  * @ignore
  */
-export class NewLayerDataDto {
-    @ApiProperty({})
-    @Expose()
-    id?: number;
-    @ApiProperty({})
-    @Expose()
-    value?:string
+
+export class ProductDataDto {
+    @ApiProperty({ description: 'Id of the product data' })
+    product_id: string;
+  
+    @ApiProperty({ description: 'Name of the product data' })
+    product_name: string;
+  }
+  
+
+export class LayerDataDto {
+  @ApiProperty({ description: 'Id of the layer data' })
+  id: number;
+
+  @ApiProperty({ description: 'Value of the layer data' })
+  value: string;
+
+  @ApiProperty({
+    type: ProductDataDto,
+    isArray: true,
+    description: 'Array of product data',
+  })
+  data?: ProductDataDto[];
 }
 
-export class NewLayerCreateDto {
-    @Expose()
-    id?: number;
-    @IsString()
-    @Expose()
-    @ApiProperty({
-        description: 'new layer api '
-    })
-    category?: string;
-    @IsString()
-    @Expose()
-    @ApiProperty()
-    has_subcategory?: boolean;
-    @Expose()
-    createdAt?: Date;
-    @Expose()
-    updatedAt?: Date;
-    
-    @Expose()
-    @ApiProperty({ type: () => NewLayerDataDto, isArray: true })
-    data?:Array<NewLayerDataDto>
+export class NLayerDto {
+  @ApiProperty({ description: 'Id of the layer' })
+  id: number;
 
-   
+  @ApiProperty({ description: 'Category of the layer' })
+  category: string;
+
+  @ApiProperty({
+    type: 'boolean',
+    description: 'Flag indicating if the layer has a subcategory',
+  })
+  has_subcategory: boolean;
+
+  @ApiProperty({
+    type: LayerDataDto,
+    isArray: true,
+    description: 'Array of layer data',
+  })
+  data: LayerDataDto[];
 }

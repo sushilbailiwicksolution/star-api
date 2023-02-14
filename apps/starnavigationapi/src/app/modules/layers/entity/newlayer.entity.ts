@@ -1,20 +1,65 @@
-import { Column, Entity, OneToMany } from 'typeorm';
-import { ExtendEntity } from './extend.entity';
-import { NewLayerDataEntity } from './newlayerdata.entity';
+import {Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn} from 'typeorm';
 
 
-/**
- * This is new layer entity
- * Contains Landmark fields  creates landmark in database
- */
+@Entity({name:"layer_category"})
+export class NLayer {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-@Entity({name: "newlayer"})
-export class NewLayerEntity extends ExtendEntity {
-    @Column({length: 64})
-    category?: string;
-    @Column()
-    has_subcategory?: boolean;
-    
-    @OneToMany('NewLayerDataEntity','value',{ eager: true, cascade: true })
-    data?: NewLayerDataEntity[];
+  @Column()
+  category: string;
+
+  @Column()
+  has_subcategory: boolean;
+
+  @OneToMany(
+    type => LayerData,
+    layerData => layerData.layer,
+    { cascade: true },
+  )
+  data: LayerData[];
+}
+
+@Entity({name:"layer_data"})
+export class LayerData {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  value: string;
+
+  
+  @OneToMany(
+    type => ProductData,
+    productData => productData.layerData,
+    { cascade: true },
+  )
+  data?: ProductData[];
+  
+  @ManyToOne(
+    type => NLayer,
+    layer => layer.data,
+    { onDelete: 'CASCADE' },
+  )
+  layer: NLayer;
+
+}
+
+@Entity({name:"product_data"})
+export class ProductData {
+  @PrimaryGeneratedColumn()
+  id?: number;
+
+  @Column()
+  product_id: string;
+
+  @Column()
+  product_name: string;
+
+  @ManyToOne(
+    type => LayerData,
+    layerData => layerData.data,
+    { onDelete: 'CASCADE' },
+  )
+  layerData: LayerData;
 }

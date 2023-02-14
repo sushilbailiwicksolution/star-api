@@ -1,93 +1,101 @@
-import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { StateDto } from "../../../dto/state.interface";
-import { StatusEnum } from "../../../enum/status.enum";
-import { QueryBuilder } from "../../../service/query.builder.service";
-import { paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { NewLayerCreateDto } from "../dto/newlayer.dto";
-import { NewLayerEntity } from "../entity/newlayer.entity";
-import * as _ from "lodash";
-
-/**
- * NewLayerService consist of methods for NewLayer API
- */
+import { LayerDataDto, NLayerDto, ProductDataDto } from "../dto/newlayer.dto";
+import { LayerData, NLayer, ProductData } from "../entity/newlayer.entity";
 
 @Injectable()
 export class NewLayerService {
-    private readonly logger = new Logger(NewLayerService.name);
-    /**
-     * This is constructor for NewLayer Service 
-     * @param repository 
-     * @param queryBuilderService 
-     */
-    constructor(
-        @InjectRepository(NewLayerEntity) private repository: Repository<NewLayerEntity>,
-        private readonly queryBuilderService: QueryBuilder) { }
-     
-    /**
-     * Create new NewLayer in database 
-     * @param {object}data Takes this and save it into database (new entry)
-     * @returns Saves this data into database
-     */
-    async create(data: NewLayerCreateDto): Promise<NewLayerEntity> {
-        return this.repository.save(data);
-    }
-    /**
-     * Find NewLayer based on id provided 
-     * @param {number}id Checks for the id of NewLayer into database 
-     * @returns with the data related to the id 
-     */
-    async findById(id: number): Promise<NewLayerEntity> {
-        return this.repository.findOne({ id });
-    }
-    /**
-     * Find all the NewLayers into database
-     * @returns All the NewLayers saved in database
-     */
-    async findAll(): Promise<Array<NewLayerEntity>> {
-        return this.repository.find({status: StatusEnum.ACTIVE});
-    }
+  // constructor(@InjectRepository(NLayer) private layerRepository: Repository<NLayer>) {}
+ 
+  constructor(
+    @InjectRepository(NLayer)
+    private readonly layerRepository: Repository<NLayer>,
+    @InjectRepository(LayerData)
+    private readonly layerDataRepository: Repository<LayerData>,
+    @InjectRepository(ProductData)
+    private readonly productRepository: Repository<ProductData>,
+  ) {}
 
-    /**
-     * Removes the NewLayer based on id provided.
-     * @param {number}id  Checks for the id  
-     * @returns 
-     */
-    async remove(id: number): Promise<NewLayerEntity> {
-        const layer = await this.findById(id);
-        layer.status = StatusEnum.DELETED;
-        return this.repository.save(layer);
-    }
+// Get all layers 
+async getLayers(): Promise<NLayerDto[]> {
+ 
+  const layers = await this.layerRepository.find();
+  const layerDTOs = [];
 
-    /**
-     * Updates NewLayer based on id  provided 
-     * @param id Updates NewLayer based on id provided
-     * @param data 
-     * @returns 
-     */
-    async update(id: number, data: NewLayerCreateDto): Promise<NewLayerEntity> {
-        data = _.omit(data, ['id']);
-        let layer = await this.findById(id);
-        this.logger.log(`update: ${JSON.stringify(layer)}`);
-        if (layer == null) {
-            throw new HttpException({
-                status: HttpStatus.FORBIDDEN,
-                error: `Layer id: ${id} not found`,
-            }, HttpStatus.FORBIDDEN);
-        }
-        layer = Object.assign(layer, data);
-        return this.repository.save(layer);
-    }
+  for (const layer of layers) {
+    const layerData = await this.layerDataRepository.find({ layer });
+    const layerDTO = new NLayerDto();
+    layerDTO.id = layer.id;
+    layerDTO.category = layer.category;
+    layerDTO.has_subcategory = layer.has_subcategory;
 
-    /**
-     * @ignore
-     * @param state 
-     * @returns 
-     */
-    async paginate(state: StateDto): Promise<Pagination<NewLayerEntity>> {
-        const options = { page: state.page.current, limit: state.page.size };
-        const queryBuilder = this.repository.createQueryBuilder('t');
-        return await paginate<NewLayerEntity>(this.queryBuilderService.getQuery(state, queryBuilder), options);
+    const layerDataDTOs = [];
+    // let id =1;
+    // Dont use
+    for (const data of layerData) {
+      const product = await this.productRepository.find({ layerData: data });
+      const layerDataDTO = new LayerDataDto();
+      layerDataDTO.id = data.id;
+      layerDataDTO.value = data.value;
+
+      if(product.length>0){
+      const productDTOs = [];
+      for (const item of product) {
+        const productDTO = new ProductDataDto();
+        productDTO.product_id = item.product_id;
+        productDTO.product_name = item.product_name;
+        productDTOs.push(productDTO);
+      }
+
+      layerDataDTO.data = productDTOs;
     }
+      layerDataDTOs.push(layerDataDTO);
+      // id++;
+    }
+  
+    layerDTO.data = layerDataDTOs;
+    layerDTOs.push(layerDTO);
+  }
+
+  return layerDTOs;
 }
+
+
+
+
+
+// to handle create request 
+async createLayer(layerDTO: NLayerDto): Promise<NLayerDto> {
+  const layer = new NLayer();
+  layer.category = layerDTO.category;
+  layer.has_subcategory = layerDTO.has_subcategory;
+  await this.layerRepository.save(layer);
+
+  layerDTO.data.forEach(async layerDataDTO => {
+    const layerData = new LayerData();
+    layerData.value = layerDataDTO.value;
+    layerData.layer = layer;
+    await this.layerDataRepository.save(layerData);
+
+    if (layerDataDTO.data) {
+      layerDataDTO.data.forEach(async productDTO => {
+        const product = new ProductData();
+        product.product_id = productDTO.product_id;
+        product.product_name = productDTO.product_name;
+        product.layerData = layerData;
+        await this.productRepository.save(product);
+      });
+    }
+  });
+
+  return layerDTO;
+}
+
+
+
+
+}
+
+
+
